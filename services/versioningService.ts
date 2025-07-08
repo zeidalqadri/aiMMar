@@ -103,13 +103,18 @@ export const versioningService = {
   },
 
   // Create auto-checkpoint before AI response
-  createAutoCheckpoint: async (sessionId: string, modelUsed: string): Promise<ChatVersion> => {
+  createAutoCheckpoint: async (sessionId: string, modelUsed: string): Promise<ChatVersion | null> => {
     const timestamp = new Date().toISOString()
-    return versioningService.createCheckpoint(
-      sessionId, 
-      `Auto-checkpoint (${modelUsed}) - ${timestamp}`,
-      true
-    )
+    try {
+      return await versioningService.createCheckpoint(
+        sessionId, 
+        `Auto-checkpoint (${modelUsed}) - ${timestamp}`,
+        true
+      )
+    } catch (error) {
+      console.warn('Failed to create auto-checkpoint (session may not exist in backend yet):', error)
+      return null
+    }
   },
 
   // Format version display name
