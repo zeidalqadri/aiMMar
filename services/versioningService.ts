@@ -4,6 +4,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
   ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`
   : 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
 
+// Debug logging
+if (typeof window !== 'undefined') {
+  console.log('VersioningService - NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL)
+  console.log('VersioningService - API_BASE_URL:', API_BASE_URL)
+}
+
 export const versioningService = {
   // Create a new checkpoint version
   createCheckpoint: async (sessionId: string, checkpointName?: string, autoCheckpoint: boolean = false): Promise<ChatVersion> => {
