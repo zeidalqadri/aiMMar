@@ -286,18 +286,24 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
               </div>
             )}
             <form onSubmit={handleSendMessage} className="flex gap-2">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type your note..."
-                className="flex-1 p-3 border-2 border-black focus:outline-none focus:ring-0 bg-white"
-                disabled={isLoading}
-              />
+              <div className="flex-1 relative">
+                <textarea
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your note... (Cmd+Enter to send)"
+                  className="w-full p-3 border-2 border-black focus:outline-none focus:ring-0 bg-white resize-none min-h-[50px] max-h-[150px]"
+                  disabled={isLoading}
+                  rows={2}
+                />
+                <div className="absolute bottom-1 right-2 text-xs text-gray-400">
+                  Cmd+Enter to send
+                </div>
+              </div>
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
-                className="px-6 py-3 border-2 border-black text-sm font-bold bg-black text-white hover:bg-white hover:text-black focus:outline-none focus:ring-0 transition-colors duration-200 disabled:opacity-50"
+                className="px-6 py-3 border-2 border-black text-sm font-bold bg-black text-white hover:bg-white hover:text-black focus:outline-none focus:ring-0 transition-colors duration-200 disabled:opacity-50 self-end"
               >
                 SEND
               </button>
