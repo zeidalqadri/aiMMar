@@ -91,6 +91,9 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
     setError(null)
 
     try {
+      // Create auto-checkpoint before AI response
+      await versioningService.createAutoCheckpoint(session.id, session.context.selectedModel)
+      
       const response = await chatService.sendMessage(chatSession, inputText, null)
       
       const aiMessage: ChatEntry = {
@@ -108,7 +111,7 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
       }
       
       setSession(finalSession)
-      storageService.saveSession(finalSession)
+      await storageService.saveSession(finalSession)
       onSave(finalSession)
       
     } catch (err) {
