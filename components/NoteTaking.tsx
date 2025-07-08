@@ -279,6 +279,7 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
               onVersionRestore={handleVersionRestore}
               onModelSwitch={handleModelSwitch}
             />
+            <ThinkingSettings onSettingsChange={setThinkingSettings} />
             <ExportControl session={session} />
             <GoogleDocsControl 
               session={session} 
