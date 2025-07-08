@@ -6,6 +6,69 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Custom animations for thinking components */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 69, 19, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.6);
+  }
+}
+
+@keyframes thinking-dots {
+  0%, 20% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.animate-thinking-dots {
+  animation: thinking-dots 1.5s infinite;
+}
+
+.animate-gradient-shift {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
