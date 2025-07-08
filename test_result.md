@@ -117,6 +117,18 @@ backend:
         agent: "main"
         comment: "Backend dependencies already installed via requirements.txt, FastAPI server running on port 8001"
 
+  - task: "Implement versioning APIs and data models"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added comprehensive versioning models (ChatVersion, NoteSession), created API endpoints for version management, checkpoint creation, restoration, and model switching with MongoDB storage"
+
 frontend:
   - task: "Switch from Yarn to npm and resolve lockfile issues"
     implemented: true
