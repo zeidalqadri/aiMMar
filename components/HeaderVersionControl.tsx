@@ -5,6 +5,7 @@ import { History, Save, RotateCcw, ChevronDown } from 'lucide-react'
 import type { ChatVersion, NoteSession, ModelOption } from '../types'
 import { versioningService } from '../services/versioningService'
 import { modelService } from '../services/modelService'
+import { storageService } from '../services/storageService'
 
 interface HeaderVersionControlProps {
   session: NoteSession
