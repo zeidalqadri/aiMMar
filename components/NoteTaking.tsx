@@ -11,6 +11,7 @@ import { ExportControl } from './ExportControl'
 import { GoogleDocsControl } from './GoogleDocsControl'
 import { AnimatedThinking } from './AnimatedThinking'
 import { ChainOfThought } from './ChainOfThought'
+import { ThinkingSettings, type ThinkingSettings as ThinkingSettingsType } from './ThinkingSettings'
 
 interface NoteTakingProps {
   initialSession: NoteSession
