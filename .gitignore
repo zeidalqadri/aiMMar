@@ -16,6 +16,10 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
+# Yarn lockfiles (using npm instead)
+yarn.lock
+*/yarn.lock
+
 # Testing
 /coverage
 
