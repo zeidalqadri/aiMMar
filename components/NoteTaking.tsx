@@ -50,6 +50,11 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
     if (session.chatHistory.length === 0) {
       sendInitialMessage(initChat)
     }
+
+    // Cleanup: Reset page title when component unmounts
+    return () => {
+      document.title = 'aiMMar - AI Note Taking'
+    }
   }, [])
 
   // Reinitialize chat when model changes
