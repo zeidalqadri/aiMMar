@@ -256,6 +256,10 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
               onModelSwitch={handleModelSwitch}
             />
             <ExportControl session={session} />
+            <GoogleDocsControl 
+              session={session} 
+              onSessionUpdate={handleSessionUpdate}
+            />
           </div>
           
           <div className="flex items-center space-x-4">
