@@ -8,7 +8,7 @@
     "lint": "next lint",
     "start": "next start",
     "export": "next build && next export",
-    "deploy:cf": "wrangler pages deploy out --project-name=aiammar",
+    "deploy:cf": "wrangler pages deploy out --project-name=aimmar",
     "preview:cf": "wrangler pages dev out",
     "build:cf": "npm run build && npm run deploy:cf"
   },
