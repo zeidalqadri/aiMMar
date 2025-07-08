@@ -158,7 +158,7 @@ export const GoogleDocsControl: React.FC<GoogleDocsControlProps> = ({
               disabled={loading === 'sync' || !isAuthenticated}
               className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-xs disabled:opacity-50"
             >
-              <Sync className="w-3 h-3" />
+              <RefreshCw className="w-3 h-3" />
               <span>{loading === 'sync' ? 'Syncing...' : 'Sync Versions'}</span>
             </button>
           </div>
