@@ -322,21 +322,35 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
               ))}
               
               {/* Animated Thinking Display */}
-              {isLoading && (
+              {isLoading && thinkingSettings.showThinking && (
                 <>
-                  {/* Simple thinking animation */}
-                  <AnimatedThinking 
-                    isVisible={isLoading && !showChainOfThought}
-                    modelName={session.context.selectedModel.split('/').pop()?.replace(':free', '') || 'AI'}
-                  />
+                  {/* Simple or detailed thinking animation */}
+                  {thinkingSettings.thinkingMode !== 'chain-of-thought' && (
+                    <AnimatedThinking 
+                      isVisible={true}
+                      modelName={session.context.selectedModel.split('/').pop()?.replace(':free', '') || 'AI'}
+                    />
+                  )}
                   
                   {/* Detailed chain of thought */}
-                  <ChainOfThought
-                    isVisible={showChainOfThought}
-                    userMessage={lastUserMessage}
-                    modelName={session.context.selectedModel.split('/').pop()?.replace(':free', '') || 'AI'}
-                  />
+                  {thinkingSettings.thinkingMode === 'chain-of-thought' && (
+                    <ChainOfThought
+                      isVisible={showChainOfThought}
+                      userMessage={lastUserMessage}
+                      modelName={session.context.selectedModel.split('/').pop()?.replace(':free', '') || 'AI'}
+                    />
+                  )}
                 </>
+              )}
+              
+              {/* Fallback simple loading for when thinking is disabled */}
+              {isLoading && !thinkingSettings.showThinking && (
+                <div className="text-left">
+                  <div className="inline-block p-3 border-2 border-black bg-white text-black">
+                    <div className="text-xs font-bold mb-1">AI</div>
+                    <div className="text-sm">Processing...</div>
+                  </div>
+                </div>
               )}
               
               <div ref={chatEndRef} />
