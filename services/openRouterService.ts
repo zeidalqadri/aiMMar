@@ -243,7 +243,7 @@ const makeOpenRouterRequest = async (messages: any[], selectedModel: string) => 
     // If using default key and hit rate limit, suggest user gets their own key
     if (isUsingDefault() && (response.status === 429 || response.status === 402)) {
       throw new Error(
-        "Beta usage limit reached. Please get your own free OpenRouter API key to continue using aiAmmar without limits.",
+        "Beta usage limit reached. Please get your own free OpenRouter API key to continue using aiMMar without limits.",
       )
     }
 
