@@ -262,7 +262,7 @@ export const testApiKey = async (key: string): Promise<boolean> => {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
         "HTTP-Referer": window.location.origin,
-        "X-Title": "aiAmmar - API Key Test",
+        "X-Title": "aiMMar - API Key Test",
       },
       body: JSON.stringify({
         model: "deepseek/deepseek-r1-0528:free",
