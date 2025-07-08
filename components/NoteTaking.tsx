@@ -100,6 +100,9 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
 
   const sendInitialMessage = async (chat: any) => {
     try {
+      const initialMessage = "Hello, I'm ready to start taking notes!"
+      setLastUserMessage(initialMessage)
+      setShowChainOfThought(true)
       setIsLoading(true)
       
       // Ensure session is saved to backend before sending initial message
@@ -110,7 +113,9 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
         console.warn('Failed to save session to backend, continuing with localStorage:', saveErr)
       }
       
-      const response = await chatService.sendMessage(chat, "Hello, I'm ready to start taking notes!", null)
+      const response = await chatService.sendMessage(chat, initialMessage, null)
+      
+      setShowChainOfThought(false)
       
       const newChatEntry: ChatEntry = {
         id: Date.now().toString(),
@@ -131,6 +136,7 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
       onSave(updatedSession)
       
     } catch (err) {
+      setShowChainOfThought(false)
       console.error('Error sending initial message:', err)
       setError('Failed to initialize AI chat. Please try again.')
     } finally {
