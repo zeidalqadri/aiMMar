@@ -1,7 +1,7 @@
 import type { NoteSession, ChatVersion } from '../types.ts';
 import { modelService } from './modelService.ts';
 
-const SESSIONS_KEY = 'aiAmmar_sessions';
+const SESSIONS_KEY = 'aiMMar_sessions';
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL 
   ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`
   : 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api';
