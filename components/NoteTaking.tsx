@@ -94,6 +94,15 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
   const sendInitialMessage = async (chat: any) => {
     try {
       setIsLoading(true)
+      
+      // Ensure session is saved to backend before sending initial message
+      try {
+        await storageService.saveSession(session)
+        console.log('Session saved to backend before initial message')
+      } catch (saveErr) {
+        console.warn('Failed to save session to backend, continuing with localStorage:', saveErr)
+      }
+      
       const response = await chatService.sendMessage(chat, "Hello, I'm ready to start taking notes!", null)
       
       const newChatEntry: ChatEntry = {
@@ -111,7 +120,7 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
       }
       
       setSession(updatedSession)
-      storageService.saveSession(updatedSession)
+      await storageService.saveSession(updatedSession)
       onSave(updatedSession)
       
     } catch (err) {
