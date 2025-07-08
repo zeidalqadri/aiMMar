@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'aiAmmar - AI Note Taking',
-  description: 'Intelligent note-taking with AI-powered living documents by aiAmmar',
-  generator: 'aiAmmar',
+  title: 'aiMMar - AI Note Taking',
+  description: 'Intelligent note-taking with AI-powered living documents by aiMMar',
+  generator: 'aiMMar',
 }
 
 export default function RootLayout({
