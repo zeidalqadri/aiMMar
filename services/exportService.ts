@@ -181,27 +181,6 @@ export const exportService = {
     return content
   },
 
-  // Generate PDF content (plain text)
-  generatePDFContent: (session: NoteSession): string => {
-    let content = ''
-    
-    // Living Document
-    if (session.livingDocument) {
-      content += 'LIVING DOCUMENT:\n\n'
-      content += session.livingDocument.replace(/[#*]/g, '') + '\n\n'
-      content += '---\n\n'
-    }
-    
-    // Chat History
-    content += 'CHAT HISTORY:\n\n'
-    session.chatHistory.forEach((entry, index) => {
-      const role = entry.role === 'user' ? 'USER' : 'AI'
-      content += `${role} (${index + 1}):\n${entry.text}\n\n`
-    })
-    
-    return content
-  },
-
   // Copy to clipboard
   copyToClipboard: async (session: NoteSession): Promise<void> => {
     try {
