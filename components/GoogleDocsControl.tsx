@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { FileText, Upload, Download, Sync, ChevronDown } from 'lucide-react'
+import { FileText, Upload, Download, RefreshCw, ChevronDown } from 'lucide-react'
 import type { NoteSession } from '../types'
 import { googleDocsService } from '../services/googleDocsService'
 
