@@ -34,13 +34,24 @@ export const versioningService = {
 
   // Get all versions for a session
   getVersions: async (sessionId: string): Promise<ChatVersion[]> => {
-    const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/versions`)
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch versions')
-    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/versions`)
+      
+      if (response.status === 404) {
+        // Session doesn't exist in backend yet, return empty array
+        console.log('Session not found in backend, returning empty versions')
+        return []
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch versions: ${response.status}`)
+      }
 
-    return response.json()
+      return response.json()
+    } catch (error) {
+      console.warn('Failed to fetch versions from API:', error)
+      return []
+    }
   },
 
   // Restore a specific version
