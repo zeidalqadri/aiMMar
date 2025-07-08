@@ -5,7 +5,9 @@ import type { NoteSession, NoteContext, ChatEntry, ImageFile, ChatVersion } from
 import { chatService } from '../services/openRouterService'
 import { storageService } from '../services/storageService'
 import { versioningService } from '../services/versioningService'
-import { VersioningPanel } from './VersioningPanel'
+import { HeaderVersionControl } from './HeaderVersionControl'
+import { ResizablePanels } from './ResizablePanels'
+import { ExportControl } from './ExportControl'
 
 interface NoteTakingProps {
   initialSession: NoteSession
