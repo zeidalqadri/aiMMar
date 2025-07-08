@@ -5,10 +5,21 @@ export interface ImageFile {
   base64: string;
 }
 
+export interface ModelOption {
+  id: string;
+  name: string;
+  description?: string;
+  pricing: {
+    prompt: string;
+    completion: string;
+  };
+}
+
 export interface NoteContext {
   title: string;
   goal: string;
   keywords: string;
+  selectedModel: string;
 }
 
 export interface ChatEntry {

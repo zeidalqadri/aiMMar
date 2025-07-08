@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState } from 'react'
-import type { NoteContext } from '../types'
+import React, { useState, useEffect } from 'react'
+import type { NoteContext, ModelOption } from '../types'
+import { modelService } from '../services/modelService'
 
 interface ContextSetupProps {
   onComplete: (context: NoteContext) => void
@@ -12,10 +13,34 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
   const [context, setContext] = useState<NoteContext>({
     title: '',
     goal: '',
-    keywords: ''
+    keywords: '',
+    selectedModel: modelService.getDefaultModel()
   })
+  const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
+  const [modelsLoading, setModelsLoading] = useState(true)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    loadModels()
+  }, [])
+
+  const loadModels = async () => {
+    try {
+      setModelsLoading(true)
+      const models = await modelService.fetchFreeModels()
+      setAvailableModels(models)
+      
+      // Set default model if current selection is not available
+      if (models.length > 0 && !models.find(m => m.id === context.selectedModel)) {
+        setContext(prev => ({ ...prev, selectedModel: models[0].id }))
+      }
+    } catch (error) {
+      console.error('Failed to load models:', error)
+    } finally {
+      setModelsLoading(false)
+    }
+  }
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -34,6 +59,10 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
     
     if (context.keywords.length > 200) {
       newErrors.keywords = 'Keywords must be under 200 characters'
+    }
+
+    if (!context.selectedModel) {
+      newErrors.selectedModel = 'Please select an AI model'
     }
     
     setErrors(newErrors)
@@ -66,6 +95,10 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
     }
   }
 
+  const getModelDisplayName = (model: ModelOption) => {
+    return model.name !== model.id ? model.name : model.id.split('/').pop() || model.id
+  }
+
   return (
     <div className="h-screen flex flex-col bg-white text-black">
       <div className="flex-1 flex items-center justify-center p-8">
@@ -79,6 +112,40 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* AI Model Selection */}
+            <div>
+              <label className="block text-sm font-bold mb-2">
+                AI MODEL
+              </label>
+              {modelsLoading ? (
+                <div className="w-full p-3 border-2 border-black bg-gray-50 text-gray-500">
+                  Loading available models...
+                </div>
+              ) : (
+                <select
+                  value={context.selectedModel}
+                  onChange={(e) => handleInputChange('selectedModel', e.target.value)}
+                  className="w-full p-3 border-2 border-black focus:outline-none focus:ring-0 bg-white"
+                  disabled={isSubmitting}
+                >
+                  {availableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {getModelDisplayName(model)}
+                      {model.description && ` - ${model.description.substring(0, 60)}${model.description.length > 60 ? '...' : ''}`}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {errors.selectedModel && (
+                <div className="mt-1 text-sm border-l-4 border-black pl-2">
+                  {errors.selectedModel}
+                </div>
+              )}
+              <p className="mt-1 text-xs text-gray-600">
+                {availableModels.length} free models available • Auto-updated from OpenRouter
+              </p>
+            </div>
+
             {/* Title Field */}
             <div>
               <label className="block text-sm font-bold mb-2">
@@ -156,7 +223,7 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
               <button
                 type="submit"
                 className="flex-1 py-3 px-4 border-2 border-black text-sm font-bold bg-black text-white hover:bg-white hover:text-black focus:outline-none focus:ring-0 transition-colors duration-200 disabled:opacity-50"
-                disabled={isSubmitting}
+                disabled={isSubmitting || modelsLoading}
               >
                 {isSubmitting ? 'CREATING SESSION...' : 'START SESSION →'}
               </button>

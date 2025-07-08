@@ -34,6 +34,7 @@ You are an AI assistant tasked with creating a "living document". Your purpose i
 - **Project/Session Title:** ${context.title}
 - **Objective:** ${context.goal}
 - **Keywords/Topics:** ${context.keywords}
+- **AI Model:** ${context.selectedModel}
 
 **Your Core Directives:**
 1. **Capture & Clarify:** The user will provide rough notes, bullet points, questions, or images. Engage conversationally to clarify their points.
@@ -82,52 +83,10 @@ const parseJsonResponse = (jsonString: string): { reply: string; document: strin
   }
 }
 
-const detectAdvancedTask = (text: string): boolean => {
-  const advancedKeywords = [
-    "analyze",
-    "compare",
-    "explain why",
-    "how does",
-    "what if",
-    "reasoning",
-    "logic",
-    "calculate",
-    "solve",
-    "prove",
-    "evaluate",
-    "critique",
-    "synthesize",
-    "deduce",
-    "infer",
-    "conclude",
-    "justify",
-    "argue",
-    "debate",
-    "philosophical",
-    "ethical",
-    "complex",
-    "intricate",
-    "sophisticated",
-    "nuanced",
-    "multifaceted",
-  ]
-
-  const priorityMarker = text.includes("#")
-  const hasAdvancedKeywords = advancedKeywords.some((keyword) => text.toLowerCase().includes(keyword.toLowerCase()))
-  const isLongComplex = text.length > 200 && (text.includes("?") || text.includes("because"))
-
-  return priorityMarker || hasAdvancedKeywords || isLongComplex
-}
-
-const selectModel = (text: string): string => {
-  return detectAdvancedTask(text) ? "openrouter/cypher-alpha:free" : "deepseek/deepseek-r1-0528:free"
-}
-
-const makeOpenRouterRequest = async (messages: any[], text?: string) => {
+const makeOpenRouterRequest = async (messages: any[], selectedModel: string) => {
   const currentApiKey = getApiKey()
-  const model = text ? selectModel(text) : "deepseek/deepseek-r1-0528:free"
-
-  console.log(`Using model: ${model} for request`)
+  
+  console.log(`Using model: ${selectedModel} for request`)
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -138,7 +97,7 @@ const makeOpenRouterRequest = async (messages: any[], text?: string) => {
       "X-Title": "aiAmmar - Note Taking Assistant",
     },
     body: JSON.stringify({
-      model,
+      model: selectedModel,
       messages,
       temperature: 0.7,
       max_tokens: 2048,
@@ -211,18 +170,9 @@ interface ChatSession {
   context: NoteContext
 }
 
-const getCurrentModel = (text: string): { name: string; isAdvanced: boolean } => {
-  const isAdvanced = detectAdvancedTask(text)
-  return {
-    name: isAdvanced ? "Cypher Alpha" : "DeepSeek R1",
-    isAdvanced,
-  }
-}
-
 export const chatService = {
   initializeAI,
   isUsingDefault,
-  getCurrentModel,
 
   startChat: (context: NoteContext): ChatSession => {
     return {
@@ -271,7 +221,8 @@ export const chatService = {
       setTimeout(() => reject(new Error("AI response timeout after 30 seconds")), 30000),
     )
 
-    const messagePromise = makeOpenRouterRequest(chat.messages, text)
+    // Use the selected model from the session context
+    const messagePromise = makeOpenRouterRequest(chat.messages, chat.context.selectedModel)
 
     const responseContent = await Promise.race([messagePromise, timeoutPromise])
     console.log("Received OpenRouter response:", responseContent.substring(0, 200) + "...")
@@ -316,7 +267,8 @@ export const chatService = {
       setTimeout(() => reject(new Error("AI response timeout after 30 seconds")), 30000),
     )
 
-    const messagePromise = makeOpenRouterRequest(messages)
+    // Use the selected model from the context
+    const messagePromise = makeOpenRouterRequest(messages, context.selectedModel)
     const responseContent = await Promise.race([messagePromise, timeoutPromise])
 
     return parseJsonResponse(responseContent)
