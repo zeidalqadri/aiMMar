@@ -1,4 +1,4 @@
-# aiAmmar New Features Implementation
+# aiMMar New Features Implementation
 
 ## 🎉 **Major Features Added**
 
