@@ -86,17 +86,43 @@ export const App: React.FC = () => {
     setSessions(storageService.getSessions())
   }
 
-  const handleContextComplete = (context: NoteContext) => {
-    const newSession: NoteSession = {
-      id: Date.now().toString(),
-      lastModified: Date.now(),
-      context,
-      chatHistory: [],
-      livingDocument: ''
+  const handleContextComplete = async (context: NoteContext) => {
+    try {
+      // Create session using the proper createSession method that syncs to backend
+      const newSession = await storageService.createSession({
+        context,
+        chatHistory: [],
+        livingDocument: ''
+      })
+      
+      setCurrentSession(newSession)
+      setView("notetaking")
+    } catch (error) {
+      console.error('Failed to create session:', error)
+      
+      // Fallback to local creation if backend fails
+      const fallbackSession: NoteSession = {
+        id: Date.now().toString(),
+        lastModified: Date.now(),
+        context,
+        chatHistory: [],
+        livingDocument: '',
+        current_version: 1,
+        versions: [{
+          id: `${Date.now()}_v1`,
+          version_number: 1,
+          timestamp: new Date().toISOString(),
+          chatHistory: [],
+          livingDocument: '',
+          modelUsed: context.selectedModel,
+          checkpoint_name: 'Initial Version',
+          auto_checkpoint: false
+        }]
+      }
+      
+      setCurrentSession(fallbackSession)
+      setView("notetaking")
     }
-    
-    setCurrentSession(newSession)
-    setView("notetaking")
   }
 
   const handleSelectSession = (session: NoteSession) => {
