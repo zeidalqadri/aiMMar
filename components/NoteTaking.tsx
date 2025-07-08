@@ -31,6 +31,11 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
   const [chatSession, setChatSession] = useState<any>(null)
   const [lastUserMessage, setLastUserMessage] = useState('')
   const [showChainOfThought, setShowChainOfThought] = useState(false)
+  const [thinkingSettings, setThinkingSettings] = useState<ThinkingSettingsType>({
+    showThinking: true,
+    thinkingMode: 'chain-of-thought',
+    animationSpeed: 'normal'
+  })
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
