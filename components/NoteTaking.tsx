@@ -28,6 +28,8 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [chatSession, setChatSession] = useState<any>(null)
+  const [lastUserMessage, setLastUserMessage] = useState('')
+  const [showChainOfThought, setShowChainOfThought] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
