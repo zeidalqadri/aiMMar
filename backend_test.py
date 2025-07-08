@@ -239,7 +239,7 @@ def test_versioning_apis(session_id):
             "version_id": version_id
         }
         
-        response = requests.post(f"{BACKEND_URL}/restore", json=restore_data)
+        response = requests.post(f"{BACKEND_URL}/sessions/{session_id}/restore", json=restore_data)
         
         if response.status_code == 200:
             print(f"✅ Successfully restored version: {response.json()['message']}")
