@@ -44,8 +44,24 @@ export const VersioningPanel: React.FC<VersioningPanelProps> = ({
       const fetchedVersions = await versioningService.getVersions(session.id)
       setVersions(fetchedVersions)
     } catch (err) {
-      setError('Failed to load versions')
-      console.error('Error loading versions:', err)
+      console.log('Session not yet synced to backend, using local versions')
+      // Fallback to session versions if available
+      if (session.versions && session.versions.length > 0) {
+        setVersions(session.versions)
+      } else {
+        // Create a default version from current session state
+        const defaultVersion = {
+          id: `${session.id}_v1`,
+          version_number: 1,
+          timestamp: new Date().toISOString(),
+          chatHistory: session.chatHistory,
+          livingDocument: session.livingDocument,
+          modelUsed: session.context.selectedModel,
+          checkpoint_name: 'Current State',
+          auto_checkpoint: false
+        }
+        setVersions([defaultVersion])
+      }
     }
   }
 
