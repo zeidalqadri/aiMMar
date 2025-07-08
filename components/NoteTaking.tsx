@@ -149,6 +149,10 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
       image: null
     }
 
+    // Store the user message for the thinking animation
+    setLastUserMessage(inputText)
+    setShowChainOfThought(true)
+
     // Add user message immediately
     const updatedHistoryWithUser = [...session.chatHistory, userMessage]
     setSession(prev => ({ ...prev, chatHistory: updatedHistoryWithUser }))
@@ -165,6 +169,9 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
       }
       
       const response = await chatService.sendMessage(chatSession, inputText, null)
+      
+      // Hide thinking animation when response is ready
+      setShowChainOfThought(false)
       
       const aiMessage: ChatEntry = {
         id: (Date.now() + 1).toString(),
@@ -185,6 +192,7 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
       onSave(finalSession)
       
     } catch (err) {
+      setShowChainOfThought(false)
       console.error('Error sending message:', err)
       setError('Failed to send message. Please try again.')
     } finally {
