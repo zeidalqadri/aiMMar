@@ -12,7 +12,7 @@ export const modelService = {
         headers: {
           'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
-          'X-Title': 'aiAmmar - Model Selection',
+          'X-Title': 'aiMMar - Model Selection',
         },
       })
 
