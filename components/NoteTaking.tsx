@@ -246,11 +246,21 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
           >
             ← BACK
           </button>
-          <h1 className="text-xl font-bold">aiAmmar</h1>
-          <div className="text-sm">
-            {session.context.title}
-            <div className="text-xs text-gray-500 mt-1">
-              Model: {session.context.selectedModel.split('/').pop()?.replace(':free', '') || 'Unknown'}
+          
+          <div className="flex items-center space-x-6">
+            <HeaderVersionControl
+              session={session}
+              onSessionUpdate={handleSessionUpdate}
+              onVersionRestore={handleVersionRestore}
+              onModelSwitch={handleModelSwitch}
+            />
+            <ExportControl session={session} />
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold">aiAmmar</h1>
+            <div className="text-sm">
+              {session.context.title}
             </div>
           </div>
         </div>
