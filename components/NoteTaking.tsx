@@ -9,6 +9,8 @@ import { HeaderVersionControl } from './HeaderVersionControl'
 import { ResizablePanels } from './ResizablePanels'
 import { ExportControl } from './ExportControl'
 import { GoogleDocsControl } from './GoogleDocsControl'
+import { AnimatedThinking } from './AnimatedThinking'
+import { ChainOfThought } from './ChainOfThought'
 
 interface NoteTakingProps {
   initialSession: NoteSession
