@@ -43,6 +43,9 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
     const initChat = chatService.startChat(session.context)
     setChatSession(initChat)
     
+    // Update page title with session title
+    document.title = `${session.context.title} - aiMMar`
+    
     // If this is a new session, send initial message
     if (session.chatHistory.length === 0) {
       sendInitialMessage(initChat)
