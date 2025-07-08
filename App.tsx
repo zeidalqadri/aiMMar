@@ -10,7 +10,7 @@ import { NoteTaking } from "./components/NoteTaking"
 // Simple Header
 const SimpleHeader = () => (
   React.createElement('div', { className: "p-4 border-b-2 border-black bg-white" },
-    React.createElement('h1', { className: "text-xl font-bold" }, "aiAmmar")
+    React.createElement('h1', { className: "text-xl font-bold" }, "aiMMar")
   )
 )
 
