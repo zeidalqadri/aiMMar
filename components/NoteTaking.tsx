@@ -8,6 +8,7 @@ import { versioningService } from '../services/versioningService'
 import { HeaderVersionControl } from './HeaderVersionControl'
 import { ResizablePanels } from './ResizablePanels'
 import { ExportControl } from './ExportControl'
+import { GoogleDocsControl } from './GoogleDocsControl'
 
 interface NoteTakingProps {
   initialSession: NoteSession
