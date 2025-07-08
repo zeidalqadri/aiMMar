@@ -163,7 +163,9 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
 
     // Store the user message for the thinking animation
     setLastUserMessage(inputText)
-    setShowChainOfThought(true)
+    if (thinkingSettings.showThinking && thinkingSettings.thinkingMode === 'chain-of-thought') {
+      setShowChainOfThought(true)
+    }
 
     // Add user message immediately
     const updatedHistoryWithUser = [...session.chatHistory, userMessage]
