@@ -2,7 +2,21 @@ import type { NoteSession, ChatVersion } from '../types.ts';
 import { modelService } from './modelService.ts';
 
 const SESSIONS_KEY = 'aiAmmar_sessions';
-const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL || 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api';
+
+// Get backend URL from environment or fallback
+const getBackendUrl = () => {
+  if (typeof window !== 'undefined') {
+    // Client-side: Try multiple ways to get the backend URL
+    return process.env.NEXT_PUBLIC_BACKEND_URL || 
+           window.location.origin.replace(':3000', ':8001') + '/api' ||
+           'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
+  }
+  // Server-side fallback
+  return process.env.NEXT_PUBLIC_BACKEND_URL || 
+         'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
+}
+
+const API_BASE_URL = getBackendUrl();
 
 export const storageService = {
   // Get sessions from API first, fallback to localStorage
