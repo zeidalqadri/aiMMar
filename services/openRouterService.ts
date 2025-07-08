@@ -226,7 +226,7 @@ const makeOpenRouterRequest = async (messages: any[], selectedModel: string) => 
       Authorization: `Bearer ${currentApiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": window.location.origin,
-      "X-Title": "aiAmmar - Note Taking Assistant",
+      "X-Title": "aiMMar - Note Taking Assistant",
     },
     body: JSON.stringify({
       model: selectedModel,
