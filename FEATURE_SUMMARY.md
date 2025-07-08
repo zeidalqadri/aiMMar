@@ -53,7 +53,7 @@
 
 ### **Header Layout:**
 ```
-[← BACK] [Version v1 ▼] [Model ▼] [Checkpoint] [Export ▼] [Google Docs ▼] [aiAmmar] [Session Title]
+[← BACK] [Version v1 ▼] [Model ▼] [Checkpoint] [Export ▼] [Google Docs ▼] [aiMMar] [Session Title]
 ```
 
 ### **Resizable Panels:**
