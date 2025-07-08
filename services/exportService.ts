@@ -23,23 +23,114 @@ export const exportService = {
       const jsPDF = (await import('jspdf')).default
       
       const doc = new jsPDF()
-      const content = exportService.generatePDFContent(session)
+      const pageHeight = doc.internal.pageSize.height
+      const pageWidth = doc.internal.pageSize.width
+      const margins = { top: 20, bottom: 20, left: 20, right: 20 }
+      const contentWidth = pageWidth - margins.left - margins.right
+      let currentY = margins.top
+      
+      // Helper function to add new page if needed
+      const checkPageBreak = (additionalHeight: number = 0) => {
+        if (currentY + additionalHeight > pageHeight - margins.bottom) {
+          doc.addPage()
+          currentY = margins.top
+          return true
+        }
+        return false
+      }
+      
+      // Helper function to add text with automatic pagination
+      const addText = (text: string, fontSize: number, isBold: boolean = false, bottomMargin: number = 5) => {
+        doc.setFontSize(fontSize)
+        if (isBold) {
+          doc.setFont(undefined, 'bold')
+        } else {
+          doc.setFont(undefined, 'normal')
+        }
+        
+        const lines = doc.splitTextToSize(text, contentWidth)
+        const lineHeight = fontSize * 0.5
+        
+        for (const line of lines) {
+          checkPageBreak(lineHeight)
+          doc.text(line, margins.left, currentY)
+          currentY += lineHeight
+        }
+        currentY += bottomMargin
+      }
       
       // Add title
-      doc.setFontSize(20)
-      doc.text(session.context.title, 20, 30)
+      addText(session.context.title, 20, true, 10)
       
       // Add metadata
-      doc.setFontSize(12)
-      doc.text(`Goal: ${session.context.goal}`, 20, 45)
-      doc.text(`Keywords: ${session.context.keywords}`, 20, 55)
-      doc.text(`Model: ${session.context.selectedModel}`, 20, 65)
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 75)
+      addText(`Goal: ${session.context.goal}`, 12, false, 5)
+      addText(`Keywords: ${session.context.keywords}`, 12, false, 5)
+      addText(`Model: ${session.context.selectedModel}`, 12, false, 5)
+      addText(`Generated: ${new Date().toLocaleString()}`, 12, false, 15)
       
-      // Add content
-      doc.setFontSize(14)
-      const lines = doc.splitTextToSize(content, 170)
-      doc.text(lines, 20, 90)
+      // Add separator line
+      checkPageBreak(5)
+      doc.setLineWidth(0.5)
+      doc.line(margins.left, currentY, pageWidth - margins.right, currentY)
+      currentY += 10
+      
+      // Add Living Document if exists
+      if (session.livingDocument) {
+        addText('LIVING DOCUMENT', 16, true, 10)
+        
+        // Clean and format the living document
+        const cleanedDocument = session.livingDocument
+          .replace(/[#*]/g, '') // Remove markdown formatting
+          .replace(/\n\s*\n/g, '\n\n') // Normalize line breaks
+        
+        addText(cleanedDocument, 11, false, 15)
+        
+        // Add separator
+        checkPageBreak(5)
+        doc.setLineWidth(0.5)
+        doc.line(margins.left, currentY, pageWidth - margins.right, currentY)
+        currentY += 10
+      }
+      
+      // Add Chat History
+      addText('CHAT HISTORY', 16, true, 10)
+      
+      session.chatHistory.forEach((entry, index) => {
+        const role = entry.role === 'user' ? 'USER' : 'AI ASSISTANT'
+        const messageNumber = index + 1
+        
+        // Add role header
+        addText(`${role} (Message ${messageNumber}):`, 12, true, 5)
+        
+        // Add message content
+        addText(entry.text, 11, false, 10)
+        
+        // Add small separator between messages
+        if (index < session.chatHistory.length - 1) {
+          currentY += 5
+        }
+      })
+      
+      // Add Version Information if available
+      if (session.versions && session.versions.length > 0) {
+        checkPageBreak(20)
+        currentY += 10
+        
+        // Add separator
+        doc.setLineWidth(0.5)
+        doc.line(margins.left, currentY, pageWidth - margins.right, currentY)
+        currentY += 10
+        
+        addText('VERSION INFORMATION', 16, true, 10)
+        addText(`Current Version: ${session.current_version || 1}`, 12, false, 5)
+        addText(`Total Versions: ${session.versions.length}`, 12, false, 10)
+        
+        addText('Version History:', 12, true, 5)
+        session.versions.forEach(version => {
+          const versionText = `• Version ${version.version_number}: ${version.checkpoint_name || 'Auto-checkpoint'} (${new Date(version.timestamp).toLocaleString()})`
+          addText(versionText, 10, false, 3)
+        })
+      }
       
       // Save the PDF
       doc.save(`${session.context.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`)
