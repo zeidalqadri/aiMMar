@@ -307,6 +307,14 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Versioning Panel */}
+      <VersioningPanel
+        session={session}
+        onSessionUpdate={handleSessionUpdate}
+        onVersionRestore={handleVersionRestore}
+        onModelSwitch={handleModelSwitch}
+      />
     </div>
   )
 }
