@@ -134,9 +134,11 @@ export const App: React.FC = () => {
     setView("notetaking")
   }
 
-  const handleSaveSession = (session: NoteSession) => {
-    // Session is already saved in NoteTaking component
-    // This callback is for any additional handling if needed
+  const handleSaveSession = async (session: NoteSession) => {
+    await storageService.saveSession(session)
+    // Refresh sessions list
+    const refreshedSessions = await storageService.getSessions()
+    setSessions(refreshedSessions)
   }
 
   return React.createElement('div', { className: "h-screen flex flex-col bg-white text-black" },
