@@ -311,14 +311,25 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
                   </div>
                 </div>
               ))}
+              
+              {/* Animated Thinking Display */}
               {isLoading && (
-                <div className="text-left">
-                  <div className="inline-block p-3 border-2 border-black bg-white text-black">
-                    <div className="text-xs font-bold mb-1">AI</div>
-                    <div className="text-sm">Thinking...</div>
-                  </div>
-                </div>
+                <>
+                  {/* Simple thinking animation */}
+                  <AnimatedThinking 
+                    isVisible={isLoading && !showChainOfThought}
+                    modelName={session.context.selectedModel.split('/').pop()?.replace(':free', '') || 'AI'}
+                  />
+                  
+                  {/* Detailed chain of thought */}
+                  <ChainOfThought
+                    isVisible={showChainOfThought}
+                    userMessage={lastUserMessage}
+                    modelName={session.context.selectedModel.split('/').pop()?.replace(':free', '') || 'AI'}
+                  />
+                </>
               )}
+              
               <div ref={chatEndRef} />
             </div>
 
