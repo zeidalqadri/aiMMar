@@ -1,6 +1,6 @@
 import type { NoteSession, ChatVersion, NoteContext } from '../types'
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001/api'
+const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL || 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
 
 export const versioningService = {
   // Create a new checkpoint version
