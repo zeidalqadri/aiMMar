@@ -1,6 +1,6 @@
 import type { NoteSession } from '../types.ts';
 
-const SESSIONS_KEY = 'iAmmr_sessions';
+const SESSIONS_KEY = 'aiAmmar_sessions';
 
 export const storageService = {
   getSessions: (): NoteSession[] => {

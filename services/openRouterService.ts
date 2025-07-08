@@ -135,7 +135,7 @@ const makeOpenRouterRequest = async (messages: any[], text?: string) => {
       Authorization: `Bearer ${currentApiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": window.location.origin,
-      "X-Title": "iAmmr - Note Taking Assistant",
+      "X-Title": "aiAmmar - Note Taking Assistant",
     },
     body: JSON.stringify({
       model,
@@ -152,7 +152,7 @@ const makeOpenRouterRequest = async (messages: any[], text?: string) => {
     // If using default key and hit rate limit, suggest user gets their own key
     if (isUsingDefault() && (response.status === 429 || response.status === 402)) {
       throw new Error(
-        "Beta usage limit reached. Please get your own free OpenRouter API key to continue using iAmmr without limits.",
+        "Beta usage limit reached. Please get your own free OpenRouter API key to continue using aiAmmar without limits.",
       )
     }
 
@@ -171,7 +171,7 @@ export const testApiKey = async (key: string): Promise<boolean> => {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
         "HTTP-Referer": window.location.origin,
-        "X-Title": "iAmmr - API Key Test",
+        "X-Title": "aiAmmar - API Key Test",
       },
       body: JSON.stringify({
         model: "deepseek/deepseek-r1-0528:free",
