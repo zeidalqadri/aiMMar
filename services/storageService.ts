@@ -2,7 +2,7 @@ import type { NoteSession, ChatVersion } from '../types.ts';
 import { modelService } from './modelService.ts';
 
 const SESSIONS_KEY = 'aiAmmar_sessions';
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001/api';
+const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL || 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api';
 
 export const storageService = {
   // Get sessions from API first, fallback to localStorage
