@@ -141,8 +141,12 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
     setError(null)
 
     try {
-      // Create auto-checkpoint before AI response
-      await versioningService.createAutoCheckpoint(session.id, session.context.selectedModel)
+      // Create auto-checkpoint before AI response (only if session exists in backend)
+      try {
+        await versioningService.createAutoCheckpoint(session.id, session.context.selectedModel)
+      } catch (checkpointErr) {
+        console.log('Auto-checkpoint skipped (session not in backend yet):', checkpointErr)
+      }
       
       const response = await chatService.sendMessage(chatSession, inputText, null)
       
@@ -169,6 +173,19 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
       setError('Failed to send message. Please try again.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      if (e.metaKey || e.ctrlKey) {
+        // Cmd+Enter or Ctrl+Enter = submit
+        e.preventDefault()
+        if (!isLoading && inputText.trim()) {
+          handleSendMessage(e as any)
+        }
+      }
+      // Regular Enter = new line (default behavior)
     }
   }
 
