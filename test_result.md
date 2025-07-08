@@ -174,8 +174,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Verify npm build works correctly"
-    - "Test both frontend and backend services"
+    - "Test versioning system functionality"
+    - "Test checkpoint creation and restoration"
+    - "Test model switching during chat"
+    - "Verify backward compatibility with existing sessions"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
