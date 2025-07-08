@@ -23,7 +23,7 @@ const SimpleHistoryView = ({ sessions, onNew, onSelectSession }: {
   React.createElement('div', { className: "flex items-center justify-center h-full w-full" },
     React.createElement('div', { className: "w-full max-w-2xl p-8 space-y-6 bg-white border-2 border-black" },
       React.createElement('div', { className: "text-center" },
-        React.createElement('h1', { className: "text-6xl font-black tracking-tighter" }, "aiAmmar"),
+        React.createElement('h1', { className: "text-6xl font-black tracking-tighter" }, "aiMMar"),
         React.createElement('p', { className: "mt-2 text-sm" }, "Session History")
       ),
       
