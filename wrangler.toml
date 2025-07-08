@@ -1,0 +1,7 @@
+[build]
+command = "npm run build"
+publish = "out"
+
+[build.environment_variables]
+NODE_VERSION = "20.19.2"
+NPM_VERSION = "latest"
