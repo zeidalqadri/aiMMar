@@ -1,19 +1,8 @@
 import type { NoteSession, ChatVersion, NoteContext } from '../types'
 
-// Get backend URL from environment or fallback
-const getBackendUrl = () => {
-  if (typeof window !== 'undefined') {
-    // Client-side: Try multiple ways to get the backend URL
-    return process.env.NEXT_PUBLIC_BACKEND_URL || 
-           window.location.origin.replace(':3000', ':8001') + '/api' ||
-           'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
-  }
-  // Server-side fallback
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 
-         'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
-}
-
-const API_BASE_URL = getBackendUrl()
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL 
+  ? `${process.env.REACT_APP_BACKEND_URL}/api`
+  : 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
 
 export const versioningService = {
   // Create a new checkpoint version
