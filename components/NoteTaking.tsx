@@ -1,9 +1,11 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react'
-import type { NoteSession, NoteContext, ChatEntry, ImageFile } from '../types'
+import type { NoteSession, NoteContext, ChatEntry, ImageFile, ChatVersion } from '../types'
 import { chatService } from '../services/openRouterService'
 import { storageService } from '../services/storageService'
+import { versioningService } from '../services/versioningService'
+import { VersioningPanel } from './VersioningPanel'
 
 interface NoteTakingProps {
   initialSession: NoteSession
