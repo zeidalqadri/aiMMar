@@ -1,4 +1,5 @@
 import type { NoteSession } from '../types.ts';
+import { modelService } from './modelService.ts';
 
 const SESSIONS_KEY = 'aiAmmar_sessions';
 
@@ -7,7 +8,17 @@ export const storageService = {
     try {
       const storedSessions = localStorage.getItem(SESSIONS_KEY);
       if (storedSessions) {
-        return JSON.parse(storedSessions);
+        const sessions = JSON.parse(storedSessions);
+        
+        // Migrate old sessions that don't have selectedModel
+        const migratedSessions = sessions.map((session: any) => {
+          if (!session.context.selectedModel) {
+            session.context.selectedModel = modelService.getDefaultModel();
+          }
+          return session;
+        });
+        
+        return migratedSessions;
       }
     } catch (error) {
       console.error("Failed to load sessions from local storage:", error);
