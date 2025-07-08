@@ -36,10 +36,60 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
     }
   }, [])
 
+  // Reinitialize chat when model changes
+  useEffect(() => {
+    if (chatSession) {
+      const newChat = chatService.startChat(session.context)
+      setChatSession(newChat)
+    }
+  }, [session.context.selectedModel])
+
   useEffect(() => {
     // Auto-scroll to bottom of chat
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [session.chatHistory])
+
+  // Versioning handlers
+  const handleSessionUpdate = (updatedSession: NoteSession) => {
+    setSession(updatedSession)
+    onSave(updatedSession)
+  }
+
+  const handleVersionRestore = async (version: ChatVersion) => {
+    try {
+      // Refresh session data after restore
+      const refreshedSession = await storageService.getSession(session.id)
+      if (refreshedSession) {
+        setSession(refreshedSession)
+        onSave(refreshedSession)
+        
+        // Reinitialize chat with restored model
+        const newChat = chatService.startChat(refreshedSession.context)
+        setChatSession(newChat)
+      }
+    } catch (err) {
+      console.error('Error handling version restore:', err)
+      setError('Failed to restore version. Please try again.')
+    }
+  }
+
+  const handleModelSwitch = async (newModel: string) => {
+    try {
+      // Refresh session data after model switch
+      const refreshedSession = await storageService.getSession(session.id)
+      if (refreshedSession) {
+        setSession(refreshedSession)
+        onSave(refreshedSession)
+        
+        // Reinitialize chat with new model
+        const newChat = chatService.startChat(refreshedSession.context)
+        setChatSession(newChat)
+      }
+    } catch (err) {
+      console.error('Error handling model switch:', err)
+      setError('Failed to switch model. Please try again.')
+    }
+  }
 
   const sendInitialMessage = async (chat: any) => {
     try {
