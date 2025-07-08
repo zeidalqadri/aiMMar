@@ -290,7 +290,7 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
           </div>
           
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold">aiAmmar</h1>
+            <h1 className="text-xl font-bold">aiMMar</h1>
             <div className="text-sm">
               {session.context.title}
             </div>
