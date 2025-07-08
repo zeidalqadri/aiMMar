@@ -72,7 +72,11 @@ export const App: React.FC = () => {
   const [currentSession, setCurrentSession] = useState<NoteSession | null>(null)
 
   useEffect(() => {
-    setSessions(storageService.getSessions())
+    const loadSessions = async () => {
+      const loadedSessions = await storageService.getSessions()
+      setSessions(loadedSessions)
+    }
+    loadSessions()
   }, [])
 
   const handleStartNew = () => {
