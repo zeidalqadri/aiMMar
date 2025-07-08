@@ -84,6 +84,14 @@ export const VersioningPanel: React.FC<VersioningPanelProps> = ({
     setError(null)
 
     try {
+      // First ensure the session exists in the backend
+      try {
+        await storageService.saveSession(session)
+        console.log('Session synced to backend before creating checkpoint')
+      } catch (syncErr) {
+        console.warn('Failed to sync session to backend:', syncErr)
+      }
+
       const newVersion = await versioningService.createCheckpoint(
         session.id,
         checkpointName,
@@ -101,8 +109,8 @@ export const VersioningPanel: React.FC<VersioningPanelProps> = ({
       onSessionUpdate(updatedSession)
       
     } catch (err) {
-      setError('Failed to create checkpoint')
       console.error('Error creating checkpoint:', err)
+      setError('Failed to create checkpoint. Session may need to be synced first.')
     } finally {
       setLoading(false)
     }
