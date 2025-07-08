@@ -123,11 +123,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Added comprehensive versioning models (ChatVersion, NoteSession), created API endpoints for version management, checkpoint creation, restoration, and model switching with MongoDB storage"
+      - working: true
+        agent: "testing"
+        comment: "Tested all versioning APIs and they are working correctly. Created comprehensive test suite in backend_test.py that verifies: session creation/management, version creation, version listing, model switching with checkpoint, version restoration with auto-backup, and version deletion with protection for the last version."
 
 frontend:
   - task: "Switch from Yarn to npm and resolve lockfile issues"
