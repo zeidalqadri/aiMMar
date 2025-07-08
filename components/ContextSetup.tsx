@@ -72,7 +72,7 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
         <div className="w-full max-w-2xl">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-6xl font-black tracking-tighter mb-4">iAmmr</h1>
+            <h1 className="text-6xl font-black tracking-tighter mb-4">aiAmmar</h1>
             <div className="border-b-2 border-dashed border-black mb-4"></div>
             <p className="text-sm">Setup your note session</p>
           </div>

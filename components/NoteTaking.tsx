@@ -163,7 +163,7 @@ export const NoteTaking: React.FC<NoteTakingProps> = ({
           >
             ← BACK
           </button>
-          <h1 className="text-xl font-bold">iAmmr</h1>
+          <h1 className="text-xl font-bold">aiAmmar</h1>
           <div className="text-sm">
             {session.context.title}
           </div>
