@@ -35,6 +35,63 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+# Versioning Models
+class ImageFile(BaseModel):
+    name: str
+    type: str
+    size: int
+    base64: str
+
+class ChatEntry(BaseModel):
+    id: str
+    role: str  # 'user' or 'model'
+    text: str
+    image: Optional[ImageFile] = None
+
+class NoteContext(BaseModel):
+    title: str
+    goal: str
+    keywords: str
+    selectedModel: str
+
+class ChatVersion(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    version_number: int
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    chatHistory: List[ChatEntry]
+    livingDocument: str
+    modelUsed: str
+    checkpoint_name: Optional[str] = None
+    auto_checkpoint: bool = True
+
+class NoteSession(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    lastModified: datetime = Field(default_factory=datetime.utcnow)
+    context: NoteContext
+    chatHistory: List[ChatEntry]
+    livingDocument: str
+    current_version: int = 1
+    versions: List[ChatVersion] = []
+
+class SessionCreate(BaseModel):
+    context: NoteContext
+    chatHistory: List[ChatEntry] = []
+    livingDocument: str = ""
+
+class VersionCreate(BaseModel):
+    session_id: str
+    checkpoint_name: Optional[str] = None
+    auto_checkpoint: bool = True
+
+class ModelSwitch(BaseModel):
+    session_id: str
+    new_model: str
+    create_checkpoint: bool = True
+
+class VersionRestore(BaseModel):
+    session_id: str
+    version_id: str
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
