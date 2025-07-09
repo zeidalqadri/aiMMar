@@ -6,4 +6,4 @@ pages_build_output_dir = "out"
 [build.environment_variables]
 NODE_VERSION = "20.19.2"
 NPM_VERSION = "latest"
-NEXT_PUBLIC_BACKEND_URL = "https://aimmar-l8bsedc1k-zeidgeistdotcom.vercel.app"
+NEXT_PUBLIC_BACKEND_URL = "https://aimmar-backend-665365059532.us-central1.run.app"
