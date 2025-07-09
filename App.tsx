@@ -83,11 +83,12 @@ export const App: React.FC = () => {
     setView("context")
   }
 
-  const handleBackToHistory = () => {
+  const handleBackToHistory = async () => {
     setView("history")
     setCurrentSession(null)
     // Refresh sessions list
-    setSessions(storageService.getSessions())
+    const refreshedSessions = await storageService.getSessions()
+    setSessions(refreshedSessions)
   }
 
   const handleContextComplete = async (context: NoteContext) => {

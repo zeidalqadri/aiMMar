@@ -1,4 +1,4 @@
-import { GoogleGenAI, type Chat } from "@google/genai"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import type { ImageFile, NoteContext, ChatEntry } from "../types.ts"
 
 const validateApiKey = (apiKey: string): boolean => {
@@ -7,13 +7,13 @@ const validateApiKey = (apiKey: string): boolean => {
 }
 
 // Initialize AI service - will be set when API key is provided
-let ai: GoogleGenAI | null = null
+let ai: GoogleGenerativeAI | null = null
 
 const initializeAI = (apiKey: string) => {
   if (!validateApiKey(apiKey)) {
     throw new Error("Invalid API key format. Gemini API keys should start with 'AIza' and be 39 characters long.")
   }
-  ai = new GoogleGenAI({ apiKey })
+  ai = new GoogleGenerativeAI(apiKey)
 }
 
 const getAI = () => {

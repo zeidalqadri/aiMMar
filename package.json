@@ -8,11 +8,18 @@
     "lint": "next lint",
     "start": "next start",
     "export": "next build && next export",
-    "deploy:cf": "wrangler pages deploy out --project-name=aimmar",
-    "preview:cf": "wrangler pages dev out",
-    "build:cf": "npm run build && npm run deploy:cf"
+    "deploy:cf": "npx wrangler pages deploy out --project-name=aimmar",
+    "preview:cf": "npx wrangler pages dev out",
+    "build:cf": "next build && next export && npm run deploy:cf",
+    "build:firebase": "next build",
+    "deploy:firebase": "npm run build:firebase && firebase deploy --only hosting",
+    "preview:firebase": "npm run build:firebase && firebase hosting:channel:deploy preview",
+    "backend:start": "cd backend && python -m uvicorn server:app --host 0.0.0.0 --port 8000",
+    "backend:dev": "cd backend && python -m uvicorn server:app --reload --host 0.0.0.0 --port 8000",
+    "backend:docker": "cd backend && docker build -t aimmar-backend . && docker run -p 8080:8080 --env-file .env aimmar-backend"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-slot": "^1.1.0",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
@@ -34,7 +41,8 @@
     "@types/react-dom": "18",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.24.0"
   },
   "engines": {
     "node": ">=18.0.0"

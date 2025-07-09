@@ -43,9 +43,9 @@ export const exportService = {
       const addText = (text: string, fontSize: number, isBold: boolean = false, bottomMargin: number = 5) => {
         doc.setFontSize(fontSize)
         if (isBold) {
-          doc.setFont(undefined, 'bold')
+          doc.setFont('helvetica', 'bold')
         } else {
-          doc.setFont(undefined, 'normal')
+          doc.setFont('helvetica', 'normal')
         }
         
         const lines = doc.splitTextToSize(text, contentWidth)

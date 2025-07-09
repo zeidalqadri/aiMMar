@@ -22,6 +22,10 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is required")
 
+# Convert postgresql:// to postgresql+asyncpg:// for asyncpg driver
+if DATABASE_URL.startswith('postgresql://'):
+    DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
+
 # Create async engine
 engine = create_async_engine(DATABASE_URL, echo=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
@@ -125,9 +129,10 @@ class VersionRestore(BaseModel):
 app = FastAPI(title="aiMMar Backend", version="2.0.0")
 
 # CORS middleware
+allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,https://018d0cbe.aimmar.pages.dev').split(',')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000').split(','),
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -140,6 +145,11 @@ api_router = APIRouter(prefix="/api")
 @api_router.get("/")
 async def root():
     return {"message": "aiMMar Backend v2.0 - NeonDB Edition"}
+
+@api_router.get("/health")
+async def health_check():
+    """Health check endpoint for Cloud Run"""
+    return {"status": "healthy", "service": "aiMMar Backend", "version": "2.0.0"}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate, db: AsyncSession = Depends(get_db)):

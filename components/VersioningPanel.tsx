@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, History, Save, RotateCcw, Trash2, AlertCircle }
 import type { ChatVersion, NoteSession, ModelOption, VersioningState } from '../types'
 import { versioningService } from '../services/versioningService'
 import { modelService } from '../services/modelService'
+import { storageService } from '../services/storageService'
 
 interface VersioningPanelProps {
   session: NoteSession

@@ -1,5 +1,5 @@
-import type { NoteSession, ChatVersion } from '../types.ts';
-import { modelService } from './modelService.ts';
+import type { NoteSession, ChatVersion } from '../types';
+import { modelService } from './modelService';
 
 const SESSIONS_KEY = 'aiMMar_sessions';
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL

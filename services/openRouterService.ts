@@ -1,4 +1,4 @@
-import type { ImageFile, NoteContext, ChatEntry } from "../types.ts"
+import type { ImageFile, NoteContext, ChatEntry } from "../types"
 
 // Default API key for beta testing - this should be a limited key with usage caps
 const DEFAULT_API_KEY = "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" // Replace with your actual default key
@@ -188,7 +188,7 @@ const parseJsonResponse = (jsonString: string): { reply: string; document: strin
     let cleanJsonString = jsonString.trim()
 
     // Remove markdown code fences if present
-    const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s
+    const fenceRegex = /^```(\w*)?\s*\n?([\s\S]*?)\n?\s*```$/
     const match = cleanJsonString.match(fenceRegex)
     if (match && match[2]) {
       cleanJsonString = match[2].trim()

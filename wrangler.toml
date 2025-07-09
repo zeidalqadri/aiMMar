@@ -1,7 +1,9 @@
 [build]
 command = "npm run build"
 publish = "out"
+pages_build_output_dir = "out"
 
 [build.environment_variables]
 NODE_VERSION = "20.19.2"
 NPM_VERSION = "latest"
+NEXT_PUBLIC_BACKEND_URL = "https://aimmar-l8bsedc1k-zeidgeistdotcom.vercel.app"

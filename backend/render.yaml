@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: aimmar-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql+asyncpg://neondb_owner:npg_1b6LY15fW9qu@ep-calm-dew-a5oysrr8.us-east-2.aws.neon.tech/neondb?sslmode=require
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:3000,https://3d5b66c5.aimmar.pages.dev
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        fromService:
+          type: web
+          name: aimmar-backend
+          property: port 

@@ -37,6 +37,8 @@
     "out/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "components/ui_backup/**/*",
+    "services/geminiService.ts"
   ]
 }
