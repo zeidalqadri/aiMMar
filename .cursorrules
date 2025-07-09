@@ -191,5 +191,5 @@ The aiMMar application consists of a Next.js frontend and a FastAPI Python backe
 - ✅ CI/CD pipeline templates (GitHub Actions ready)
 - ✅ Package dependencies synchronized (npm ci compatible)
 
-**🚀 READY FOR USER TO EXECUTE GCP DEPLOYMENT**: 
-User can now follow the GCP-DEPLOYMENT.md guide or use the deploy-gcp-resume.sh script. All configuration files, dependencies, security settings, and documentation are prepared. This eliminates both the Vercel authentication blocking issue and the npm ci build errors. 
+**🚀 READY FOR USER TO EXECUTE HYBRID DEPLOYMENT**: 
+User can now follow the HYBRID-DEPLOYMENT.md guide for Cloudflare Pages (frontend) + GCP Cloud Run (backend). All configuration files, dependencies, security settings, and documentation are prepared. CSS distortion issues have been resolved and the build process is working correctly. This eliminates both the Vercel authentication blocking issue and the npm ci build errors. 
