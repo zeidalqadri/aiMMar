@@ -1,7 +1,9 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String, Text, DateTime, Integer, JSON, select, update, delete
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
@@ -9,24 +11,52 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime
+import json
 
-
+# Load environment variables
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Database setup
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
 
-# Create the main app without a prefix
-app = FastAPI()
+# Create async engine
+engine = create_async_engine(DATABASE_URL, echo=True)
+async_session = async_sessionmaker(engine, expire_on_commit=False)
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+# Database Models
+class Base(DeclarativeBase):
+    pass
 
+class StatusCheckDB(Base):
+    __tablename__ = "status_checks"
+    
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    client_name: Mapped[str] = mapped_column(String)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-# Define Models
+class NoteSessionDB(Base):
+    __tablename__ = "note_sessions"
+    
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    last_modified: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    context: Mapped[dict] = mapped_column(JSON)
+    chat_history: Mapped[list] = mapped_column(JSON, default=list)
+    living_document: Mapped[str] = mapped_column(Text, default="")
+    current_version: Mapped[int] = mapped_column(Integer, default=1)
+    versions: Mapped[list] = mapped_column(JSON, default=list)
+
+# Dependency to get database session
+async def get_db():
+    async with async_session() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+# Pydantic Models
 class StatusCheck(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
@@ -35,7 +65,6 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# Versioning Models
 class ImageFile(BaseModel):
     name: str
     type: str
@@ -92,135 +121,210 @@ class VersionRestore(BaseModel):
     session_id: str
     version_id: str
 
-# Add your routes to the router instead of directly to app
+# Create FastAPI app
+app = FastAPI(title="aiMMar Backend", version="2.0.0")
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000').split(','),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Create router
+api_router = APIRouter(prefix="/api")
+
+# Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "aiMMar Backend v2.0 - NeonDB Edition"}
 
 @api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
+async def create_status_check(input: StatusCheckCreate, db: AsyncSession = Depends(get_db)):
+    status_obj = StatusCheckDB(client_name=input.client_name)
+    db.add(status_obj)
+    await db.commit()
+    await db.refresh(status_obj)
+    return StatusCheck(
+        id=status_obj.id,
+        client_name=status_obj.client_name,
+        timestamp=status_obj.timestamp
+    )
 
 @api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+async def get_status_checks(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(StatusCheckDB))
+    status_checks = result.scalars().all()
+    return [StatusCheck(
+        id=sc.id,
+        client_name=sc.client_name,
+        timestamp=sc.timestamp
+    ) for sc in status_checks]
 
 # Session Management Endpoints
 @api_router.post("/sessions", response_model=NoteSession)
-async def create_session(input: SessionCreate):
-    session_dict = input.dict()
-    session_obj = NoteSession(**session_dict)
-    
+async def create_session(input: SessionCreate, db: AsyncSession = Depends(get_db)):
     # Create initial version
     initial_version = ChatVersion(
         version_number=1,
-        chatHistory=session_obj.chatHistory,
-        livingDocument=session_obj.livingDocument,
-        modelUsed=session_obj.context.selectedModel,
+        chatHistory=input.chatHistory,
+        livingDocument=input.livingDocument,
+        modelUsed=input.context.selectedModel,
         checkpoint_name="Initial Version",
         auto_checkpoint=False
     )
-    session_obj.versions = [initial_version]
     
-    await db.sessions.insert_one(session_obj.dict())
-    return session_obj
+    session_obj = NoteSessionDB(
+        context=input.context.model_dump(),
+        chat_history=[entry.model_dump() for entry in input.chatHistory],
+        living_document=input.livingDocument,
+        current_version=1,
+        versions=[initial_version.model_dump()]
+    )
+    
+    db.add(session_obj)
+    await db.commit()
+    await db.refresh(session_obj)
+    
+    return NoteSession(
+        id=session_obj.id,
+        lastModified=session_obj.last_modified,
+        context=NoteContext(**session_obj.context),
+        chatHistory=[ChatEntry(**entry) for entry in session_obj.chat_history],
+        livingDocument=session_obj.living_document,
+        current_version=session_obj.current_version,
+        versions=[ChatVersion(**version) for version in session_obj.versions]
+    )
 
 @api_router.get("/sessions", response_model=List[NoteSession])
-async def get_sessions():
-    sessions = await db.sessions.find().to_list(1000)
-    return [NoteSession(**session) for session in sessions]
+async def get_sessions(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB))
+    sessions = result.scalars().all()
+    return [NoteSession(
+        id=session.id,
+        lastModified=session.last_modified,
+        context=NoteContext(**session.context),
+        chatHistory=[ChatEntry(**entry) for entry in session.chat_history],
+        livingDocument=session.living_document,
+        current_version=session.current_version,
+        versions=[ChatVersion(**version) for version in session.versions]
+    ) for session in sessions]
 
 @api_router.get("/sessions/{session_id}", response_model=NoteSession)
-async def get_session(session_id: str):
-    session = await db.sessions.find_one({"id": session_id})
+async def get_session(session_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == session_id))
+    session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    return NoteSession(**session)
+    
+    return NoteSession(
+        id=session.id,
+        lastModified=session.last_modified,
+        context=NoteContext(**session.context),
+        chatHistory=[ChatEntry(**entry) for entry in session.chat_history],
+        livingDocument=session.living_document,
+        current_version=session.current_version,
+        versions=[ChatVersion(**version) for version in session.versions]
+    )
 
 @api_router.put("/sessions/{session_id}", response_model=NoteSession)
-async def update_session(session_id: str, session_update: dict):
-    session = await db.sessions.find_one({"id": session_id})
+async def update_session(session_id: str, session_update: dict, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == session_id))
+    session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
     # Update session fields
     update_dict = {
-        "lastModified": datetime.utcnow(),
+        "last_modified": datetime.utcnow(),
         **session_update
     }
     
-    await db.sessions.update_one({"id": session_id}, {"$set": update_dict})
-    updated_session = await db.sessions.find_one({"id": session_id})
-    return NoteSession(**updated_session)
+    await db.execute(
+        update(NoteSessionDB)
+        .where(NoteSessionDB.id == session_id)
+        .values(**update_dict)
+    )
+    await db.commit()
+    
+    # Fetch updated session
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == session_id))
+    updated_session = result.scalar_one()
+    
+    return NoteSession(
+        id=updated_session.id,
+        lastModified=updated_session.last_modified,
+        context=NoteContext(**updated_session.context),
+        chatHistory=[ChatEntry(**entry) for entry in updated_session.chat_history],
+        livingDocument=updated_session.living_document,
+        current_version=updated_session.current_version,
+        versions=[ChatVersion(**version) for version in updated_session.versions]
+    )
 
 @api_router.delete("/sessions/{session_id}")
-async def delete_session(session_id: str):
-    result = await db.sessions.delete_one({"id": session_id})
-    if result.deleted_count == 0:
+async def delete_session(session_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(delete(NoteSessionDB).where(NoteSessionDB.id == session_id))
+    if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="Session not found")
+    await db.commit()
     return {"message": "Session deleted successfully"}
 
 # Versioning Endpoints
 @api_router.post("/sessions/{session_id}/versions", response_model=ChatVersion)
-async def create_version(session_id: str, version_input: VersionCreate):
-    session = await db.sessions.find_one({"id": session_id})
+async def create_version(session_id: str, version_input: VersionCreate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == session_id))
+    session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    session_obj = NoteSession(**session)
-    
     # Create new version
-    new_version_number = session_obj.current_version + 1
+    new_version_number = session.current_version + 1
     new_version = ChatVersion(
         version_number=new_version_number,
-        chatHistory=session_obj.chatHistory,
-        livingDocument=session_obj.livingDocument,
-        modelUsed=session_obj.context.selectedModel,
+        chatHistory=[ChatEntry(**entry) for entry in session.chat_history],
+        livingDocument=session.living_document,
+        modelUsed=session.context['selectedModel'],
         checkpoint_name=version_input.checkpoint_name,
         auto_checkpoint=version_input.auto_checkpoint
     )
     
     # Add to versions list
-    session_obj.versions.append(new_version)
-    session_obj.current_version = new_version_number
+    versions = session.versions.copy()
+    versions.append(new_version.model_dump())
     
     # Update in database
-    await db.sessions.update_one(
-        {"id": session_id}, 
-        {"$set": {
-            "versions": [v.dict() for v in session_obj.versions],
-            "current_version": new_version_number
-        }}
+    await db.execute(
+        update(NoteSessionDB)
+        .where(NoteSessionDB.id == session_id)
+        .values(versions=versions, current_version=new_version_number)
     )
+    await db.commit()
     
     return new_version
 
 @api_router.get("/sessions/{session_id}/versions", response_model=List[ChatVersion])
-async def get_versions(session_id: str):
-    session = await db.sessions.find_one({"id": session_id})
+async def get_versions(session_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == session_id))
+    session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    session_obj = NoteSession(**session)
-    return session_obj.versions
+    return [ChatVersion(**version) for version in session.versions]
 
 @api_router.post("/sessions/{session_id}/restore")
-async def restore_version(version_restore: VersionRestore):
-    session = await db.sessions.find_one({"id": version_restore.session_id})
+async def restore_version(version_restore: VersionRestore, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == version_restore.session_id))
+    session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
-    session_obj = NoteSession(**session)
     
     # Find the version to restore
     target_version = None
-    for version in session_obj.versions:
-        if version.id == version_restore.version_id:
-            target_version = version
+    for version in session.versions:
+        if version['id'] == version_restore.version_id:
+            target_version = ChatVersion(**version)
             break
     
     if not target_version:
@@ -228,110 +332,117 @@ async def restore_version(version_restore: VersionRestore):
     
     # Create a checkpoint of current state before restoring
     current_checkpoint = ChatVersion(
-        version_number=session_obj.current_version + 1,
-        chatHistory=session_obj.chatHistory,
-        livingDocument=session_obj.livingDocument,
-        modelUsed=session_obj.context.selectedModel,
+        version_number=session.current_version + 1,
+        chatHistory=[ChatEntry(**entry) for entry in session.chat_history],
+        livingDocument=session.living_document,
+        modelUsed=session.context['selectedModel'],
         checkpoint_name=f"Auto-backup before restore to v{target_version.version_number}",
         auto_checkpoint=True
     )
-    session_obj.versions.append(current_checkpoint)
+    
+    versions = session.versions.copy()
+    versions.append(current_checkpoint.model_dump())
     
     # Restore to target version
-    session_obj.chatHistory = target_version.chatHistory
-    session_obj.livingDocument = target_version.livingDocument
-    session_obj.context.selectedModel = target_version.modelUsed
-    session_obj.current_version = current_checkpoint.version_number
+    context = session.context.copy()
+    context['selectedModel'] = target_version.modelUsed
     
-    # Update in database
-    await db.sessions.update_one(
-        {"id": version_restore.session_id}, 
-        {"$set": {
-            "chatHistory": [chat.dict() for chat in session_obj.chatHistory],
-            "livingDocument": session_obj.livingDocument,
-            "context": session_obj.context.dict(),
-            "versions": [v.dict() for v in session_obj.versions],
-            "current_version": session_obj.current_version,
-            "lastModified": datetime.utcnow()
-        }}
+    await db.execute(
+        update(NoteSessionDB)
+        .where(NoteSessionDB.id == version_restore.session_id)
+        .values(
+            chat_history=[entry.model_dump() for entry in target_version.chatHistory],
+            living_document=target_version.livingDocument,
+            context=context,
+            versions=versions,
+            current_version=current_checkpoint.version_number,
+            last_modified=datetime.utcnow()
+        )
     )
+    await db.commit()
     
     return {"message": f"Session restored to version {target_version.version_number}"}
 
 @api_router.post("/sessions/{session_id}/switch-model")
-async def switch_model(model_switch: ModelSwitch):
-    session = await db.sessions.find_one({"id": model_switch.session_id})
+async def switch_model(model_switch: ModelSwitch, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == model_switch.session_id))
+    session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    session_obj = NoteSession(**session)
+    update_dict = {"last_modified": datetime.utcnow()}
     
     # Create checkpoint if requested
     if model_switch.create_checkpoint:
         checkpoint = ChatVersion(
-            version_number=session_obj.current_version + 1,
-            chatHistory=session_obj.chatHistory,
-            livingDocument=session_obj.livingDocument,
-            modelUsed=session_obj.context.selectedModel,
+            version_number=session.current_version + 1,
+            chatHistory=[ChatEntry(**entry) for entry in session.chat_history],
+            livingDocument=session.living_document,
+            modelUsed=session.context['selectedModel'],
             checkpoint_name=f"Before model switch to {model_switch.new_model}",
             auto_checkpoint=True
         )
-        session_obj.versions.append(checkpoint)
-        session_obj.current_version = checkpoint.version_number
+        
+        versions = session.versions.copy()
+        versions.append(checkpoint.model_dump())
+        update_dict["versions"] = versions
+        update_dict["current_version"] = checkpoint.version_number
     
     # Switch model
-    session_obj.context.selectedModel = model_switch.new_model
+    context = session.context.copy()
+    context['selectedModel'] = model_switch.new_model
+    update_dict["context"] = context
     
-    # Update in database
-    update_dict = {
-        "context": session_obj.context.dict(),
-        "lastModified": datetime.utcnow()
-    }
-    
-    if model_switch.create_checkpoint:
-        update_dict["versions"] = [v.dict() for v in session_obj.versions]
-        update_dict["current_version"] = session_obj.current_version
-    
-    await db.sessions.update_one(
-        {"id": model_switch.session_id}, 
-        {"$set": update_dict}
+    await db.execute(
+        update(NoteSessionDB)
+        .where(NoteSessionDB.id == model_switch.session_id)
+        .values(**update_dict)
     )
+    await db.commit()
     
     return {"message": f"Model switched to {model_switch.new_model}"}
 
 @api_router.delete("/sessions/{session_id}/versions/{version_id}")
-async def delete_version(session_id: str, version_id: str):
-    session = await db.sessions.find_one({"id": session_id})
+async def delete_version(session_id: str, version_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(NoteSessionDB).where(NoteSessionDB.id == session_id))
+    session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    session_obj = NoteSession(**session)
-    
     # Don't allow deletion of the initial version
-    if len(session_obj.versions) <= 1:
+    if len(session.versions) <= 1:
         raise HTTPException(status_code=400, detail="Cannot delete the only version")
     
     # Find and remove the version
-    session_obj.versions = [v for v in session_obj.versions if v.id != version_id]
+    versions = [v for v in session.versions if v['id'] != version_id]
     
-    # Update in database
-    await db.sessions.update_one(
-        {"id": session_id}, 
-        {"$set": {"versions": [v.dict() for v in session_obj.versions]}}
+    await db.execute(
+        update(NoteSessionDB)
+        .where(NoteSessionDB.id == session_id)
+        .values(versions=versions)
     )
+    await db.commit()
     
     return {"message": "Version deleted successfully"}
 
-# Include the router in the main app
+# Include router
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Database initialization
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+# Startup event
+@app.on_event("startup")
+async def startup():
+    await init_db()
+    logging.info("Database initialized")
+
+# Shutdown event
+@app.on_event("shutdown")
+async def shutdown():
+    await engine.dispose()
 
 # Configure logging
 logging.basicConfig(
@@ -340,6 +451,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv('PORT', 8000))
+    host = os.getenv('HOST', '0.0.0.0')
+    uvicorn.run(app, host=host, port=port)

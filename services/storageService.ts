@@ -2,9 +2,9 @@ import type { NoteSession, ChatVersion } from '../types.ts';
 import { modelService } from './modelService.ts';
 
 const SESSIONS_KEY = 'aiMMar_sessions';
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL 
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
   ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`
-  : 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api';
+  : null; // No default backend URL - will use localStorage only
 
 // Debug logging
 if (typeof window !== 'undefined') {
@@ -15,15 +15,18 @@ if (typeof window !== 'undefined') {
 export const storageService = {
   // Get sessions from API first, fallback to localStorage
   getSessions: async (): Promise<NoteSession[]> => {
-    try {
-      // Try to get sessions from API
-      const response = await fetch(`${API_BASE_URL}/sessions`);
-      if (response.ok) {
-        const sessions = await response.json();
-        return sessions;
+    // Only try API if backend URL is configured
+    if (API_BASE_URL) {
+      try {
+        // Try to get sessions from API
+        const response = await fetch(`${API_BASE_URL}/sessions`);
+        if (response.ok) {
+          const sessions = await response.json();
+          return sessions;
+        }
+      } catch (error) {
+        console.warn("Failed to load sessions from API, falling back to localStorage:", error);
       }
-    } catch (error) {
-      console.warn("Failed to load sessions from API, falling back to localStorage:", error);
     }
 
     // Fallback to localStorage
@@ -66,21 +69,24 @@ export const storageService = {
 
   // Save session to API first, then localStorage
   saveSession: async (session: NoteSession): Promise<void> => {
-    try {
-      // Try to save to API
-      const response = await fetch(`${API_BASE_URL}/sessions/${session.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(session)
-      });
+    // Only try API if backend URL is configured
+    if (API_BASE_URL) {
+      try {
+        // Try to save to API
+        const response = await fetch(`${API_BASE_URL}/sessions/${session.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(session)
+        });
 
-      if (response.ok) {
-        return; // Successfully saved to API
+        if (response.ok) {
+          return; // Successfully saved to API
+        }
+      } catch (error) {
+        console.warn("Failed to save session to API, falling back to localStorage:", error);
       }
-    } catch (error) {
-      console.warn("Failed to save session to API, falling back to localStorage:", error);
     }
 
     // Fallback to localStorage
@@ -100,24 +106,27 @@ export const storageService = {
 
   // Create new session via API
   createSession: async (session: Omit<NoteSession, 'id' | 'lastModified' | 'current_version' | 'versions'>): Promise<NoteSession> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/sessions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          context: session.context,
-          chatHistory: session.chatHistory,
-          livingDocument: session.livingDocument
-        })
-      });
+    // Only try API if backend URL is configured
+    if (API_BASE_URL) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/sessions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            context: session.context,
+            chatHistory: session.chatHistory,
+            livingDocument: session.livingDocument
+          })
+        });
 
-      if (response.ok) {
-        return await response.json();
+        if (response.ok) {
+          return await response.json();
+        }
+      } catch (error) {
+        console.warn("Failed to create session via API, falling back to localStorage:", error);
       }
-    } catch (error) {
-      console.warn("Failed to create session via API, falling back to localStorage:", error);
     }
 
     // Fallback to localStorage
@@ -144,13 +153,16 @@ export const storageService = {
 
   // Get single session
   getSession: async (sessionId: string): Promise<NoteSession | null> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`);
-      if (response.ok) {
-        return await response.json();
+    // Only try API if backend URL is configured
+    if (API_BASE_URL) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`);
+        if (response.ok) {
+          return await response.json();
+        }
+      } catch (error) {
+        console.warn("Failed to get session from API, falling back to localStorage:", error);
       }
-    } catch (error) {
-      console.warn("Failed to get session from API, falling back to localStorage:", error);
     }
 
     // Fallback to localStorage
@@ -160,16 +172,19 @@ export const storageService = {
 
   // Delete session
   deleteSession: async (sessionId: string): Promise<void> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
-        method: 'DELETE'
-      });
+    // Only try API if backend URL is configured
+    if (API_BASE_URL) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
+          method: 'DELETE'
+        });
 
-      if (response.ok) {
-        return; // Successfully deleted from API
+        if (response.ok) {
+          return; // Successfully deleted from API
+        }
+      } catch (error) {
+        console.warn("Failed to delete session from API, falling back to localStorage:", error);
       }
-    } catch (error) {
-      console.warn("Failed to delete session from API, falling back to localStorage:", error);
     }
 
     // Fallback to localStorage

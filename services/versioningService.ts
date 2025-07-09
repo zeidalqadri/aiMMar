@@ -1,8 +1,8 @@
 import type { NoteSession, ChatVersion, NoteContext } from '../types'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL 
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
   ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`
-  : 'https://1b0a2511-3534-469b-ab29-6101faa9a591.preview.emergentagent.com/api'
+  : null // No default backend URL - will use localStorage only
 
 // Debug logging
 if (typeof window !== 'undefined') {
@@ -13,6 +13,10 @@ if (typeof window !== 'undefined') {
 export const versioningService = {
   // Create a new checkpoint version
   createCheckpoint: async (sessionId: string, checkpointName?: string, autoCheckpoint: boolean = false): Promise<ChatVersion> => {
+    if (!API_BASE_URL) {
+      throw new Error('Backend not configured - checkpoint creation not available')
+    }
+
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/versions`, {
       method: 'POST',
       headers: {
@@ -34,6 +38,11 @@ export const versioningService = {
 
   // Get all versions for a session
   getVersions: async (sessionId: string): Promise<ChatVersion[]> => {
+    if (!API_BASE_URL) {
+      console.log('Backend not configured, returning empty versions')
+      return []
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/versions`)
       
@@ -56,6 +65,10 @@ export const versioningService = {
 
   // Restore a specific version
   restoreVersion: async (sessionId: string, versionId: string): Promise<void> => {
+    if (!API_BASE_URL) {
+      throw new Error('Backend not configured - version restore not available')
+    }
+
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/restore`, {
       method: 'POST',
       headers: {
@@ -74,6 +87,10 @@ export const versioningService = {
 
   // Switch model and optionally create checkpoint
   switchModel: async (sessionId: string, newModel: string, createCheckpoint: boolean = true): Promise<void> => {
+    if (!API_BASE_URL) {
+      throw new Error('Backend not configured - model switching not available')
+    }
+
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/switch-model`, {
       method: 'POST',
       headers: {
@@ -93,6 +110,10 @@ export const versioningService = {
 
   // Delete a version
   deleteVersion: async (sessionId: string, versionId: string): Promise<void> => {
+    if (!API_BASE_URL) {
+      throw new Error('Backend not configured - version deletion not available')
+    }
+
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/versions/${versionId}`, {
       method: 'DELETE'
     })
