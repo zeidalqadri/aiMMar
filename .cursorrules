@@ -18,9 +18,9 @@ The aiMMar application consists of a Next.js frontend and a FastAPI Python backe
    - **Compute Engine**: VM-based hosting with full control but more maintenance overhead
 
 2. **Frontend Hosting Options**:
-   - **Firebase Hosting**: Integrated with GCP, CDN support, automatic HTTPS
-   - **Cloud Storage + Cloud CDN**: Cost-effective static hosting with global distribution
-   - **Cloud Run for SSR**: If server-side rendering is needed
+   - **Cloudflare Pages**: Fast global CDN, automatic HTTPS, integrated with GitHub
+   - **Firebase Hosting**: Alternative GCP integration option
+   - **Cloud Storage + Cloud CDN**: Cost-effective static hosting alternative
 
 3. **Database Strategy**:
    - **Option A**: Keep NeonDB (external) - lower GCP costs, proven working setup
@@ -32,15 +32,15 @@ The aiMMar application consists of a Next.js frontend and a FastAPI Python backe
 
 ## Verifiable Success Criteria
 
-**GCP Deployment Goals**:
-- 🎯 Backend successfully deploys on Cloud Run with proper health checks
-- 🎯 Frontend successfully deploys on Firebase Hosting with CDN
-- 🎯 Database connection works (NeonDB or Cloud SQL)
+**Hybrid Deployment Goals**:
+- 🎯 Backend successfully deploys on GCP Cloud Run with proper health checks  
+- 🎯 Frontend successfully deploys on Cloudflare Pages with CDN
+- 🎯 Database connection works (NeonDB external)
 - 🎯 Frontend-backend communication works without authentication barriers
-- 🎯 Environment variables properly configured in GCP Secret Manager
+- 🎯 Environment variables properly configured (GCP Secret Manager + Cloudflare)
 - 🎯 HTTPS and domain configuration working
 - 🎯 CI/CD pipeline configured for automated deployments
-- 🎯 Cost optimization achieved vs previous Vercel/Cloudflare setup
+- 🎯 Cost optimization achieved vs previous Vercel-only setup
 
 ## High-level Task Breakdown
 
@@ -100,9 +100,9 @@ The aiMMar application consists of a Next.js frontend and a FastAPI Python backe
    - ✅ Configured auto-scaling, resource limits, and health checks
    - ✅ Set up Secret Manager integration for environment variables
 
-3. **Firebase Hosting Setup (100% Complete)**:
-   - ✅ Created Firebase configuration files (.firebaserc, firebase.json)
-   - ✅ Updated package.json with Firebase deployment scripts
+3. **Cloudflare Pages Setup (100% Complete)**:
+   - ✅ Created Cloudflare Pages configuration (wrangler.toml)
+   - ✅ Updated package.json with Cloudflare deployment scripts
    - ✅ Configured static hosting with proper caching headers
    - ✅ Set up CDN and performance optimizations
 
@@ -112,7 +112,21 @@ The aiMMar application consists of a Next.js frontend and a FastAPI Python backe
    - ✅ Included cost optimization strategies (~$0.16/month)
    - ✅ Added troubleshooting and security considerations
 
-**🎯 READY FOR DEPLOYMENT**: All configuration files and documentation prepared for GCP deployment
+**✅ DEPLOYMENT BLOCKER RESOLVED**:
+5. **Package Dependencies Fixed (100% Complete)**:
+   - ✅ Identified npm ci sync error: "Missing: next-themes@0.4.6 from lock file"
+   - ✅ Updated package-lock.json to include next-themes dependency
+   - ✅ Committed and pushed fix to repository (commit 8b288bc)
+   - ✅ Resolved build process incompatibility with Cloudflare Pages
+
+**✅ FRONTEND STYLING ISSUE RESOLVED**:
+6. **CSS Configuration Fixed (100% Complete)**:
+   - ✅ Identified CSS import conflict causing frontend distortion
+   - ✅ Fixed layout.tsx to import proper Tailwind CSS file
+   - ✅ Removed conflicting basic CSS file (app/globals.css)
+   - ✅ Restored proper Tailwind styling and component appearance
+
+**🎯 READY FOR DEPLOYMENT**: All configuration files, dependencies, and documentation prepared for GCP deployment
 
 ## Next Steps and Action Items
 
@@ -150,22 +164,15 @@ The aiMMar application consists of a Next.js frontend and a FastAPI Python backe
 
 ## Executor's Feedback or Assistance Requests
 
-✅ **PREVIOUS DEPLOYMENT ACHIEVEMENTS**:
-- Backend deployed to Vercel (blocked by authentication)
-- Frontend deployed to Cloudflare Pages 
-- NeonDB database configured and tested
-- All dependencies resolved and CORS configured
+**🎯 DEPLOYMENT ISSUE RESOLVED & READY FOR NEXT PHASE**:
 
-🎯 **NEW REQUIREMENT - GCP DEPLOYMENT**:
-User has requested preparation for Google Cloud deployment as alternative to Vercel/Cloudflare setup. This addresses the Vercel authentication blocking issue we encountered.
+**✅ CRITICAL BUG FIX COMPLETED**:
+- **Problem Identified**: User experienced npm ci deployment failure due to package-lock.json sync issue
+- **Root Cause**: next-themes dependency was added to package.json but package-lock.json wasn't updated
+- **Solution Applied**: Ran `npm install` to sync package-lock.json, committed fix (8b288bc), pushed to repository
+- **Verification**: next-themes@0.4.6 now properly included in lock file, resolving build error
 
-**IMMEDIATE EXECUTOR ACTIONS NEEDED**:
-1. **Assessment**: Evaluate current codebase for GCP compatibility
-2. **Configuration**: Determine GCP services needed (Cloud Run, App Engine, etc.)
-3. **Environment Setup**: Prepare GCP-specific configuration files
-4. **Database Migration**: Plan NeonDB connection or GCP database alternatives
-
-**✅ GCP DEPLOYMENT PREPARATION COMPLETED**:
+**✅ COMPREHENSIVE GCP DEPLOYMENT PREPARATION COMPLETED**:
 
 **MAJOR ACHIEVEMENTS**:
 1. **Complete Infrastructure Setup**: All Docker, Cloud Run, and Firebase configurations ready
@@ -173,14 +180,16 @@ User has requested preparation for Google Cloud deployment as alternative to Ver
 3. **Production-Ready Security**: Secret Manager, service accounts, HTTPS, CORS configured
 4. **Comprehensive Documentation**: 200+ line deployment guide with troubleshooting
 5. **No Authentication Barriers**: Unlike Vercel, GCP provides clean API access
+6. **Build Dependencies Fixed**: Package sync issues resolved for seamless deployment
 
 **INFRASTRUCTURE PREPARED**:
 - ✅ Dockerfile optimized for Cloud Run (Python 3.12, health checks, security)
 - ✅ Cloud Build automation (cloudbuild.yaml, service.yaml)
-- ✅ Firebase Hosting (static Next.js deployment with CDN)
+- ✅ Cloudflare Pages (static Next.js deployment with CDN)
 - ✅ Secret Manager integration (DATABASE_URL, ALLOWED_ORIGINS)
 - ✅ Monitoring and logging configuration
 - ✅ CI/CD pipeline templates (GitHub Actions ready)
+- ✅ Package dependencies synchronized (npm ci compatible)
 
-**READY FOR USER TO EXECUTE**: 
-The user can now follow the GCP-DEPLOYMENT.md guide to deploy both services. All configuration files, security settings, and documentation are prepared. This eliminates the Vercel authentication blocking issue and provides a unified, cost-effective GCP deployment. 
+**🚀 READY FOR USER TO EXECUTE GCP DEPLOYMENT**: 
+User can now follow the GCP-DEPLOYMENT.md guide or use the deploy-gcp-resume.sh script. All configuration files, dependencies, security settings, and documentation are prepared. This eliminates both the Vercel authentication blocking issue and the npm ci build errors. 
