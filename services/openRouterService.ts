@@ -1,15 +1,32 @@
 import type { ImageFile, NoteContext, ChatEntry } from "../types"
 
-// Default API key for beta testing - this should be a limited key with usage caps
-const DEFAULT_API_KEY = "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" // Replace with your actual default key
+/**
+ * Default API key for beta testing. This key is rate-limited and **should not**
+ * be relied on in production. For production use, supply your own key via the
+ * `NEXT_PUBLIC_OPENROUTER_API_KEY` environment variable (recommended) or call
+ * `initializeAI(<your_key>)` at runtime.
+ */
+const DEFAULT_API_KEY =
+  "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"
 
-// Initialize AI service - will be set when API key is provided
+// Will hold whichever key we end up using during runtime
 let apiKey: string | null = null
 let isUsingDefaultKey = false
 
-const initializeAI = (key?: string) => {
+/**
+ * Initialize the API key that will be used for OpenRouter requests.
+ *
+ * Priority order:
+ *   1. Explicit key passed to this function.
+ *   2. Environment variable `NEXT_PUBLIC_OPENROUTER_API_KEY` (injected at build time).
+ *   3. Hard-coded DEFAULT_API_KEY fallback (rate-limited, best effort only).
+ */
+export const initializeAI = (key?: string) => {
   if (key) {
     apiKey = key
+    isUsingDefaultKey = false
+  } else if (typeof process !== "undefined" && process.env.NEXT_PUBLIC_OPENROUTER_API_KEY) {
+    apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY!
     isUsingDefaultKey = false
   } else {
     apiKey = DEFAULT_API_KEY
@@ -17,9 +34,13 @@ const initializeAI = (key?: string) => {
   }
 }
 
+// Immediately run initialization so the key is available without requiring the
+// rest of the codebase to remember to call initializeAI().
+initializeAI()
+
 const getApiKey = () => {
   if (!apiKey) {
-    // Fallback to default key if none provided
+    // This should be rare, but ensure we always have *some* key.
     initializeAI()
   }
   return apiKey!
