@@ -129,7 +129,17 @@ class VersionRestore(BaseModel):
 app = FastAPI(title="aiMMar Backend", version="2.0.0")
 
 # CORS middleware
-allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,https://018d0cbe.aimmar.pages.dev').split(',')
+raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://018d0cbe.aimmar.pages.dev")
+
+# Special case: a single asterisk means allow any origin (useful for quick testing)
+if raw_origins.strip() == "*":
+    allowed_origins = ["*"]
+else:
+    # Split and strip whitespace from each origin string
+    allowed_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
+print("CORS allowed origins:", allowed_origins)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
