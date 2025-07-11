@@ -28,7 +28,7 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
   const loadModels = async () => {
     try {
       setModelsLoading(true)
-      const models = await modelService.fetchFreeModels()
+      const models = await modelService.fetchModels()
       setAvailableModels(models)
       
       // Set default model if current selection is not available
@@ -96,8 +96,29 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
   }
 
   const getModelDisplayName = (model: ModelOption) => {
-    return model.name !== model.id ? model.name : model.id.split('/').pop() || model.id
+    // Strip provider prefix and any ":variant" suffix, keeping the concise model
+    const afterSlash = model.id.split('/').pop() || model.id
+    return afterSlash.replace(/:.+$/, '')
   }
+
+  // Group models by free/paid then by provider ("make")
+  const groupedModels = React.useMemo(() => {
+    const groups: Record<string, Record<string, ModelOption[]>> = { Free: {}, Paid: {} }
+    availableModels.forEach((m) => {
+      const isFree = m.pricing.prompt === '0' && m.pricing.completion === '0'
+      const priceKey = isFree ? 'Free' : 'Paid'
+      const provider = m.id.split('/')[0]
+      if (!groups[priceKey][provider]) {
+        groups[priceKey][provider] = []
+      }
+      groups[priceKey][provider].push(m)
+    })
+    // Sort lists for determinism
+    Object.values(groups).forEach((provMap) => {
+      Object.values(provMap).forEach((arr) => arr.sort((a, b) => a.id.localeCompare(b.id)))
+    })
+    return groups
+  }, [availableModels])
 
   return (
     <div className="h-screen flex flex-col bg-white text-black">
@@ -128,12 +149,17 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
                   className="w-full p-3 border-2 border-black focus:outline-none focus:ring-0 bg-white"
                   disabled={isSubmitting}
                 >
-                  {availableModels.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {getModelDisplayName(model)}
-                      {model.description && ` - ${model.description.substring(0, 60)}${model.description.length > 60 ? '...' : ''}`}
-                    </option>
-                  ))}
+                  {Object.entries(groupedModels).map(([priceKey, providerMap]) =>
+                    Object.entries(providerMap).map(([provider, models]) => (
+                      <optgroup key={`${priceKey}-${provider}`} label={`${priceKey} • ${provider}`}>
+                        {models.map((model) => (
+                          <option key={model.id} value={model.id}>
+                            {getModelDisplayName(model)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))
+                  )}
                 </select>
               )}
               {errors.selectedModel && (
@@ -142,7 +168,7 @@ export const ContextSetup: React.FC<ContextSetupProps> = ({ onComplete, onBack }
                 </div>
               )}
               <p className="mt-1 text-xs text-gray-600">
-                {availableModels.length} free models available • Auto-updated from OpenRouter
+                {availableModels.length} models loaded • Auto-updated from OpenRouter
               </p>
             </div>
 

@@ -46,7 +46,7 @@ export const HeaderVersionControl: React.FC<HeaderVersionControlProps> = ({
 
   const loadModels = async () => {
     try {
-      const models = await modelService.fetchFreeModels()
+      const models = await modelService.fetchModels()
       setAvailableModels(models)
     } catch (err) {
       console.error('Error loading models:', err)

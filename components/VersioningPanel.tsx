@@ -68,7 +68,7 @@ export const VersioningPanel: React.FC<VersioningPanelProps> = ({
 
   const loadModels = async () => {
     try {
-      const models = await modelService.fetchFreeModels()
+      const models = await modelService.fetchModels()
       setAvailableModels(models)
     } catch (err) {
       console.error('Error loading models:', err)

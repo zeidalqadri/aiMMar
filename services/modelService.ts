@@ -3,7 +3,11 @@ import type { ModelOption } from '../types'
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models'
 
 export const modelService = {
-  fetchFreeModels: async (): Promise<ModelOption[]> => {
+  /**
+   * Retrieve the full list of models from OpenRouter so the UI can decide how
+   * to cluster them (free vs paid, provider grouping, etc.).
+   */
+  fetchModels: async (): Promise<ModelOption[]> => {
     try {
       console.log('Fetching available models from OpenRouter...')
       
@@ -22,16 +26,9 @@ export const modelService = {
 
       const data = await response.json()
       
-      // Filter for free models (where both prompt and completion pricing are "0")
-      const freeModels = data.data?.filter((model: any) => {
-        const pricing = model.pricing
-        return pricing && 
-               (pricing.prompt === "0" || pricing.prompt === 0) && 
-               (pricing.completion === "0" || pricing.completion === 0)
-      }) || []
-
-      // Map to our ModelOption interface
-      const mappedModels: ModelOption[] = freeModels.map((model: any) => ({
+      // Map every model coming back from the API to our internal structure – we
+      // will decide later in the UI whether it is "free" or "paid".
+      const mappedModels: ModelOption[] = (data.data || []).map((model: any) => ({
         id: model.id,
         name: model.name || model.id,
         description: model.description,
@@ -41,10 +38,10 @@ export const modelService = {
         }
       }))
 
-      // Sort by name for better UX
-      mappedModels.sort((a, b) => a.name.localeCompare(b.name))
+      // Sort consistently by model id to keep group labels stable
+      mappedModels.sort((a, b) => a.id.localeCompare(b.id))
 
-      console.log(`Found ${mappedModels.length} free models`)
+      console.log(`Received ${mappedModels.length} models from OpenRouter`)
       return mappedModels
 
     } catch (error) {
